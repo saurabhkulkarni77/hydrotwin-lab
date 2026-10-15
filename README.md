@@ -2,7 +2,7 @@
 
 Lab environment for student collaboration.
 
-This repo is a copy of the `hydrotwin-site` **dev** build @ `22133ce3` (25-year dataset, Oct 2001 - Sep 2026), published via GitHub Pages so students can experiment without touching the main project environments (production / dev).
+This repo is a copy of the `hydrotwin-site` **dev** build @ `c9b46c05` (25-year dataset, Oct 2001 - Sep 2026), published via GitHub Pages so students can experiment without touching the main project environments (production / dev).
 
 What's in this build:
 - 14 stations, classic + `-3d` WebXR pages under `stations/`
