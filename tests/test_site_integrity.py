@@ -23,6 +23,8 @@ CLASSIC_MARKERS = {
     "ht-dacp v1": 1,                 # DACP daily intervals
     "ht-weekly v1": 1,               # weekly outlook section (classic form)
     "ht-uiux v1": 1,                 # UI enhancer
+    "ht-corr v1": 2,                 # multi-factor correlation section + boot
+    "ht-fullforms v1": 1,            # model full-form glossary block
     '<div id="ht-drift-panel">': 1,  # drift panel (canonical anchor)
     'id="hts-top"': 1,               # statsview layout root
     'id="hts-sec-weekly"': 1,        # weekly section in the stats layout

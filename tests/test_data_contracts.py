@@ -7,6 +7,7 @@ Families covered (the sidecar families present in this repo snapshot):
   weekly/<site>.json    - weekly-outlook baked forecasts (12 weekly leads)
   dacp/<site>.json      - daily DACP conformal quantiles, levels 70/80/90/95
   dacpw/<site>.json     - weekly DACP conformal quantiles, same levels
+  corr/<site>.json      - multi-factor correlation matrix (ht-corr v1)
   drift/drift_bake.json + drift/drift_report.json - baked drift analysis
 
 When a new sidecar family is added to the repo, add its contract here.
@@ -26,7 +27,7 @@ def _load(repo_root, *parts):
         return json.load(f)
 
 
-@pytest.mark.parametrize("family", ["dacp", "dacpw", "weekly", "soilsnow"])
+@pytest.mark.parametrize("family", ["dacp", "dacpw", "weekly", "soilsnow", "corr"])
 def test_sidecar_coverage(repo_root, family):
     files = sorted(p.stem for p in (repo_root / family).glob("*.json"))
     assert files == sorted(STATIONS), f"{family}/ must hold one file per station"
@@ -58,6 +59,26 @@ def test_weekly_contract(repo_root, station):
         assert len(rows) == n_issue
         assert all(len(row) == 12 for row in rows), (
             f"{station} weekly {model}: every issue row must carry 12 leads")
+
+
+@pytest.mark.parametrize("station", STATIONS)
+def test_corr_contract(repo_root, station):
+    obj = _load(repo_root, "corr", f"{station}.json")
+    assert obj["site"] == station
+    assert obj["v"] == "ht-corr v1"
+    assert obj["start"] == AXIS_START
+    assert obj["end"] == AXIS_END
+    keys = [v["key"] for v in obj["vars"]]
+    assert "logflow" in keys and "flow" in keys
+    k = len(keys)
+    assert len(obj["matrix"]) == k and all(len(row) == k for row in obj["matrix"])
+    for i in range(k):
+        assert obj["matrix"][i][i] == 1.0, f"{station} corr diagonal {keys[i]}"
+        for j in range(k):
+            r = obj["matrix"][i][j]
+            assert r is None or -1.0 <= r <= 1.0
+            assert obj["n"][i][j] > 0
+    assert len(obj["lead1_logflow"]) == k and len(obj["lead1_n"]) == k
 
 
 @pytest.mark.parametrize("family", ["dacp", "dacpw"])
