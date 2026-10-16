@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-16T18:10:48Z",
+  "generated_at": "2026-10-16T18:28:37Z",
   "repo": "saurabhkulkarni77/hydrotwin-lab",
   "links": {
     "repo": "https://github.com/saurabhkulkarni77/hydrotwin-lab",
@@ -350,14 +350,14 @@
       "file": ".github/workflows/ci.yml",
       "name": "CI \u2014 site, data & model tests",
       "latest": {
-        "run_id": 38945140139,
-        "title": "MLOps status page: mlops.html + mlops-status.json snapshot, status re\u2026",
-        "event": "push",
+        "run_id": 38941123757,
+        "title": "SELF-TEST: gate must fail on +2% production regression",
+        "event": "pull_request",
         "status": "completed",
         "conclusion": "success",
-        "created_at": "2026-10-16T18:09:17Z",
-        "updated_at": "2026-10-16T18:10:08Z",
-        "url": "https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38945140139"
+        "created_at": "2026-10-16T17:37:34Z",
+        "updated_at": "2026-10-16T17:38:20Z",
+        "url": "https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38941123757"
       }
     },
     {

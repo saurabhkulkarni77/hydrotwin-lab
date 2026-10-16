@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Generate mlops-status.json — the snapshot that mlops.html renders.
+"""Generate mlops-status.json + the pre-rendered mlops.html.
 
 The MLOps status page (mlops.html) is data-driven: everything it shows
-comes from this file, which is regenerated from the repo's own sources
-of truth — never hand-edited:
+comes from the snapshot this script builds, which is regenerated from
+the repo's own sources of truth — never hand-edited. The snapshot is
+written to mlops-status.json, and mlops.html is then pre-rendered
+from that same snapshot by monitor/gen_page.py, so the page displays
+its data with no client-side fetch (a fetch-based first version could
+sit forever on a "Loading status..." placeholder if the async chain
+failed). Sources:
 
   * models/registry.json + models/baselines.json -> registry table,
     champions, gate settings, per-model delta vs the frozen baselines.
@@ -352,6 +357,14 @@ def main():
     }
     out_path.write_text(json.dumps(status, indent=2) + "\n",
                         encoding="utf-8")
+
+    # Pre-render mlops.html from the same snapshot (the JSON stays the
+    # data source; the page needs no client-side fetch to display).
+    import gen_page
+    html_path = root / "mlops.html"
+    html_path.write_text(gen_page.render_html(status), encoding="utf-8")
+    print(f"wrote {html_path} (pre-rendered from the snapshot)")
+
     print(f"wrote {out_path}: {len(status['registry']['models'])} models, "
           f"{monitoring['breach_count']}/{monitoring['stations_total']} "
           f"stations breaching PSI {PSI_THRESHOLD}, workflows: "

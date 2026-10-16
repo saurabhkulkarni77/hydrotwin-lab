@@ -27,7 +27,6 @@ tr:last-child td{border-bottom:none}
 .neut{background:#3c4c5c;color:#E6EDF5}
 .banner{border-radius:10px;padding:10px 14px;margin:12px 0;font-size:13.5px;line-height:1.45}
 .banner.warnb{background:rgba(217,147,13,.18);border:1px solid #d9930d;color:#F5D9A0}
-.banner.errb{background:rgba(214,69,69,.15);border:1px solid #d64545;color:#F2B8B8}
 .kv{font-size:14px;line-height:1.6;margin:2px 0}
 .kv b{color:#fff}
 footer{padding-bottom:26px}
@@ -37,125 +36,89 @@ code{color:#BFD9F5;font-size:12.5px}
 <header>
 <a class="back" href="index.html">&larr; HydroTwin map</a>
 <h1>MLOps &mdash; Level 2 pipeline status</h1>
-<p class="sub">This lab runs a Level-2 MLOps setup on GitHub: CI tests for the site, data and
-models on every change; a model registry with a regression gate; weekly drift monitoring;
-validated retrain handoffs; and versioned releases. This page renders the live state of that
-system from <a href="mlops-status.json"><code>mlops-status.json</code></a> &mdash; see
+<p class="sub">What this MLOps setup contains: CI tests for the pages, data and models on
+every change; a model registry guarded by a validation gate; weekly drift monitoring;
+validated retrain handoffs to the training repo; and versioned releases. This page shows
+the current state of that system, pre-rendered from
+<a href="mlops-status.json"><code>mlops-status.json</code></a> &mdash; see
 <a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/blob/main/MLOPS.md">MLOPS.md</a>
 for the full design.</p>
-<p class="muted" id="genline">Loading status&hellip;</p>
+<p class="muted" id="gen" data-generated-at="2026-10-16T18:28:37Z">Snapshot generated 2026-10-16 18:28:37 UTC &middot; source repo saurabhkulkarni77/hydrotwin-lab &middot; data file mlops-status.json</p>
 <div class="banner warnb" id="stale" hidden></div>
-<div class="banner errb" id="loaderr" hidden></div>
 </header>
 <main>
 <section id="sec-triggers"><h2>Automation triggers</h2>
 <table><thead><tr><th>Automation</th><th>Fires when</th><th>What happens</th><th>Workflow</th></tr></thead>
-<tbody id="tb-triggers"></tbody></table></section>
+<tbody id="tb-triggers">
+<tr><td><b>CI test suite</b></td><td>Every pull request, and every push to main</td><td>162 pytest checks: station-page patch-marker integrity, HT_DATA contracts (n=9131 from 2001-10-01), sidecar schemas, internal links.</td><td><code>ci.yml</code></td></tr>
+<tr><td><b>Model validation gate</b></td><td>Pull requests touching models/** — including when the allow-regression label is added</td><td>Fails the PR if a production-stage model&#x27;s pooled RMSE regresses more than 1% (relative) against models/baselines.json, unless the PR carries the allow-regression label.</td><td><code>model-gate.yml</code></td></tr>
+<tr><td><b>Drift &amp; freshness monitor</b></td><td>Schedule: Mondays 09:17 UTC · or manual dispatch</td><td>Recomputes PSI drift, freshness and sidecar coverage from this repo&#x27;s baked data; on any breach it opens (or updates) the single mlops-monitor tracking issue. Silent otherwise.</td><td><code>monitor.yml</code></td></tr>
+<tr><td><b>Retrain handoff (CT)</b></td><td>Manual dispatch</td><td>Validates a retrain request (model + data window) against models/registry.json and records the handoff to hydrotwin-models, where the heavy training actually runs.</td><td><code>retrain.yml</code></td></tr>
+<tr><td><b>Release</b></td><td>Push of a version tag (v*) · or manual dispatch</td><td>Builds the GitHub-flavor site ZIP (no .github/) and publishes it as a GitHub Release with auto-generated notes.</td><td><code>release.yml</code></td></tr>
+<tr><td><b>Status snapshot (this page)</b></td><td>When the CI, gate, monitor, retrain or release workflows complete · or manual dispatch</td><td>Regenerates mlops-status.json from the registry, baked drift data and the latest Actions runs, and commits it back ([skip ci]) so this page stays current.</td><td><code>status.yml</code></td></tr>
+</tbody></table></section>
 
 <section id="sec-registry"><h2>Model registry</h2>
-<p class="kv" id="reg-summary"></p>
+<p class="kv" id="reg-summary">Dataset window <b>2001-10-01/2026-09-30</b> · train WY2002-2023 · validation WY2024 · test WY2025-2026 · daily champion <b>PILSTMv1</b> · weekly champion <b>Transformer</b></p>
 <table><thead><tr><th>Model</th><th>Version</th><th>Stage</th><th class="num">Daily RMSE</th><th class="num">Weekly RMSE</th><th>vs baseline</th></tr></thead>
-<tbody id="tb-registry"></tbody></table>
-<p class="muted" id="reg-note"></p></section>
+<tbody id="tb-registry">
+<tr><td><b>Transformer</b></td><td>25yr.1</td><td><span class="pill prod">production</span></td><td class="num">0.2737</td><td class="num">0.4857</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>GP Matérn</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.2900</td><td class="num">0.5439</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>GP RBF</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.2858</td><td class="num">0.5363</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>TFT</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.2760</td><td class="num">0.5027</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>LSTM</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.2723</td><td class="num">0.5124</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>ARIMA</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.6832</td><td class="num">0.6260</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>SARIMA</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.6745</td><td class="num">0.5440</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>PatchTST</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.2896</td><td class="num">0.5169</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>PILSTMv1</b></td><td>25yr.1</td><td><span class="pill prod">production</span></td><td class="num">0.2703</td><td class="num">0.4987</td><td><span class="pill ok">at baseline</span></td></tr>
+<tr><td><b>GCN</b></td><td>25yr.1</td><td><span class="pill cand">candidate</span></td><td class="num">0.2848</td><td class="num">0.5239</td><td><span class="pill ok">at baseline</span></td></tr>
+</tbody></table>
+<p class="muted" id="reg-note">Pooled log-flow RMSE, test era WY2025-2026. Baselines frozen 2026-10-15 in models/baselines.json; the validation gate fails a models/** PR when a production model regresses more than 1% unless it carries the allow-regression label.</p></section>
 
 <section id="sec-monitor"><h2>Drift monitoring</h2>
-<p class="kv" id="mon-summary"></p>
+<p class="kv" id="mon-summary"><b>11 of 14 stations</b> above the drift threshold (PSI &gt; 0.25) — every breach is on log10 flow. Worst: <b>Colorado River at Lees Ferry, AZ</b> (USGS 09380000) at PSI <b>2.985</b>.</p>
 <table><thead><tr><th>Station</th><th>Worst feature</th><th class="num">PSI</th><th>Status</th></tr></thead>
-<tbody id="tb-monitor"></tbody></table>
-<p class="kv" id="mon-fresh" style="margin-top:10px"></p>
-<p class="kv" id="mon-issue"></p></section>
+<tbody id="tb-monitor">
+<tr><td><b>09380000</b> — Colorado River at Lees Ferry, AZ</td><td>log10 flow</td><td class="num">2.985</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>08313000</b> — Rio Grande at Otowi Bridge, NM</td><td>log10 flow</td><td class="num">0.962</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>08158000</b> — Colorado River at Austin, TX</td><td>log10 flow</td><td class="num">0.854</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>14105700</b> — Columbia River at The Dalles, OR</td><td>log10 flow</td><td class="num">0.791</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>05331000</b> — Mississippi River at St. Paul, MN</td><td>log10 flow</td><td class="num">0.676</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>02320500</b> — Suwannee River at Branford, FL</td><td>log10 flow</td><td class="num">0.366</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>01463500</b> — Delaware River at Trenton, NJ</td><td>log10 flow</td><td class="num">0.340</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>01646500</b> — Potomac River at Little Falls, MD</td><td>log10 flow</td><td class="num">0.324</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>11447650</b> — Sacramento River at Freeport, CA</td><td>log10 flow</td><td class="num">0.321</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>07374000</b> — Mississippi River at Baton Rouge, LA</td><td>log10 flow</td><td class="num">0.316</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>06934500</b> — Missouri River at Hermann, MO</td><td>log10 flow</td><td class="num">0.257</td><td><span class="pill bad">drift</span></td></tr>
+<tr><td><b>06214500</b> — Yellowstone River at Billings, MT</td><td>log10 flow</td><td class="num">0.172</td><td><span class="pill warn">watch</span></td></tr>
+<tr><td><b>08057000</b> — Trinity River at Dallas, TX</td><td>log10 flow</td><td class="num">0.087</td><td><span class="pill ok">stable</span></td></tr>
+<tr><td><b>03294500</b> — Ohio River at Louisville, KY</td><td>log10 flow</td><td class="num">0.078</td><td><span class="pill ok">stable</span></td></tr>
+</tbody></table>
+<p class="kv" id="mon-fresh" style="margin-top:10px">Freshness: drift report current through <b>2026-09-30</b> (matches the data axis end 2026-09-30) · daily DACP sidecars reach <b>2026-09-23</b> (7 days before the axis end) · Coverage: all sidecar families complete (dacp, dacpw, weekly, soilsnow)</p>
+<p class="kv" id="mon-issue">Tracking issue: <a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/issues/2">#2 — MLOps monitor: drift threshold breaches detected</a> (open, updated 2026-10-16 17:40:26 UTC). The monitor opens or updates it automatically on any breach.</p></section>
 
 <section id="sec-pipeline"><h2>Pipeline status &mdash; latest workflow runs</h2>
 <table><thead><tr><th>Workflow</th><th>Latest run</th><th>Result</th><th>Event</th><th>Finished (UTC)</th><th></th></tr></thead>
-<tbody id="tb-pipeline"></tbody></table>
+<tbody id="tb-pipeline">
+<tr><td><b>CI — site, data &amp; model tests</b></td><td>SELF-TEST: gate must fail on +2% production regression</td><td><span class="pill ok">success</span></td><td>pull_request</td><td>2026-10-16 17:38:20</td><td><a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38941123757">run #38941123757</a></td></tr>
+<tr><td><b>Model validation gate</b></td><td>SELF-TEST: gate must fail on +2% production regression</td><td><span class="pill ok">success</span></td><td>pull_request</td><td>2026-10-16 17:38:43</td><td><a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38941242314">run #38941242314</a></td></tr>
+<tr><td><b>MLOps monitor — drift &amp; freshness</b></td><td>MLOps monitor — drift &amp; freshness</td><td><span class="pill ok">success</span></td><td>workflow_dispatch</td><td>2026-10-16 17:40:30</td><td><a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38941387853">run #38941387853</a></td></tr>
+<tr><td><b>CT — retrain handoff (stub)</b></td><td>CT — retrain handoff (stub)</td><td><span class="pill ok">success</span></td><td>workflow_dispatch</td><td>2026-10-16 17:40:32</td><td><a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38941392391">run #38941392391</a></td></tr>
+<tr><td><b>Release — site ZIP</b></td><td>Release — site ZIP</td><td><span class="pill ok">success</span></td><td>workflow_dispatch</td><td>2026-10-16 17:44:39</td><td><a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/38941875741">run #38941875741</a></td></tr>
+</tbody></table>
 <p class="muted">Full history: <a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/actions">Actions tab</a> &middot;
 <a href="https://github.com/saurabhkulkarni77/hydrotwin-lab/releases">Releases</a></p></section>
 </main>
-<footer><p class="muted">Rendered from <code>mlops-status.json</code>, regenerated by
-<code>monitor/gen_status.py</code> and committed by the status workflow after pipeline runs
-complete. If the snapshot is stale, the values above are the last generated state &mdash;
-the repo&rsquo;s Actions tab is always current.</p></footer>
+<footer><p class="muted">Pre-rendered from <code>mlops-status.json</code> by
+<code>monitor/gen_status.py</code>; the snapshot is regenerated and committed by the
+status workflow after pipeline runs complete. If the snapshot is stale, the values
+above are the last generated state &mdash; the repo&rsquo;s Actions tab is always
+current.</p></footer>
 <script>
-(function(){
-"use strict";
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function el(id){return document.getElementById(id);}
-function fmtT(iso){return iso?iso.replace("T"," ").replace("Z",""):"—";}
-function pct(x){return (x>=0?"+":"")+(x*100).toFixed(1)+"%";}
-function resultPill(w){
-  if(!w.latest) return '<span class="pill neut">no runs recorded</span>';
-  var c=w.latest.conclusion, s=w.latest.status;
-  if(c==="success") return '<span class="pill ok">success</span>';
-  if(c==="failure") return '<span class="pill bad">failure</span>';
-
-...[truncated 5669 chars]  if(c==="cancelled"||c==="skipped") return '<span class="pill neut">'+esc(c)+'</span>';
-  if(c) return '<span class="pill warn">'+esc(c)+'</span>';
-  return '<span class="pill warn">'+esc(s||"running")+'</span>';
-}
-function render(d){
-  el("genline").textContent="Snapshot generated "+fmtT(d.generated_at)+" UTC · source repo "+d.repo+" · data file mlops-status.json";
-  var age=(Date.now()-new Date(d.generated_at).getTime())/864e5;
-  if(isFinite(age)&&age>10){
-    var st=el("stale"); st.hidden=false;
-    st.textContent="This snapshot is "+Math.floor(age)+" days old — the refresh workflow may not have run recently; values below are the last generated state.";
-  }
-  // Triggers
-  el("tb-triggers").innerHTML=d.triggers.map(function(t){
-    return "<tr><td><b>"+esc(t.automation)+"</b></td><td>"+esc(t.fires_when)+"</td><td>"+esc(t.what_happens)+'</td><td><code>'+esc(t.workflow.split("/").pop())+"</code></td></tr>";
-  }).join("");
-  // Registry
-  var r=d.registry;
-  el("reg-summary").innerHTML="Dataset window <b>"+esc(r.dataset_window)+"</b> · train "+esc(r.train)+
-    " · validation "+esc(r.validation)+" · test "+esc(r.test)+
-    " · daily champion <b>"+esc(r.champions.daily)+"</b> · weekly champion <b>"+esc(r.champions.weekly)+"</b>";
-  el("tb-registry").innerHTML=r.models.map(function(m){
-    var stage=m.stage==="production"?'<span class="pill prod">production</span>':'<span class="pill cand">candidate</span>';
-    var vs=m.vs_baseline==="at baseline"?'<span class="pill ok">at baseline</span>'
-      :"daily "+pct(m.daily_delta_rel)+" · weekly "+pct(m.weekly_delta_rel);
-    return "<tr><td><b>"+esc(m.name)+"</b></td><td>"+esc(m.version)+"</td><td>"+stage+
-      '</td><td class="num">'+m.daily_rmse.toFixed(4)+'</td><td class="num">'+m.weekly_rmse.toFixed(4)+"</td><td>"+vs+"</td></tr>";
-  }).join("");
-  el("reg-note").textContent="Pooled log-flow RMSE, test era "+r.test+". Baselines frozen "+r.baselines_frozen_at+
-    " in models/baselines.json; the validation gate fails a models/** PR when a production model regresses more than "+
-    (r.gate.tolerance_rel*100)+"% unless it carries the "+r.gate.override_label+" label.";
-  // Monitoring
-  var mo=d.monitoring;
-  var featNote=mo.breach_feature?(" — every breach is on "+esc(mo.stations.find(function(s){return s.breach;}).worst_feature_label)):"";
-  el("mon-summary").innerHTML="<b>"+mo.breach_count+" of "+mo.stations_total+" stations</b> above the drift threshold (PSI &gt; "+
-    mo.psi_threshold+")"+featNote+". Worst: <b>"+esc(mo.stations[0].name||mo.stations[0].site)+"</b> (USGS "+esc(mo.stations[0].site)+
-    ") at PSI <b>"+mo.stations[0].psi.toFixed(3)+"</b>.";
-  el("tb-monitor").innerHTML=mo.stations.map(function(s){
-    var pill=s.psi>mo.psi_threshold?'<span class="pill bad">drift</span>':(s.psi>0.10?'<span class="pill warn">watch</span>':'<span class="pill ok">stable</span>');
-    return "<tr><td><b>"+esc(s.site)+"</b>"+(s.name?" — "+esc(s.name):"")+"</td><td>"+esc(s.worst_feature_label)+
-      '</td><td class="num">'+s.psi.toFixed(3)+"</td><td>"+pill+"</td></tr>";
-  }).join("");
-  var f=mo.freshness;
-  el("mon-fresh").innerHTML="Freshness: drift report current through <b>"+esc(f.drift_report_recent_end)+"</b> "+
-    (f.drift_report_current?"(matches the data axis end "+esc(f.axis_end)+")":"(data axis ends "+esc(f.axis_end)+")")+
-    " · daily DACP sidecars reach <b>"+esc(f.dacp_latest)+"</b> ("+f.dacp_lag_days+" days before the axis end) · "+
-    "Coverage: "+(mo.coverage.ok?"all sidecar families complete ("+mo.coverage.families.join(", ")+")":"problems: "+esc(mo.coverage.problems.join("; ")));
-  if(mo.issue){
-    el("mon-issue").innerHTML='Tracking issue: <a href="'+esc(mo.issue.url)+'">#'+mo.issue.number+" — "+esc(mo.issue.title)+
-      "</a> ("+esc(mo.issue.state)+", updated "+fmtT(mo.issue.updated_at)+" UTC). The monitor opens or updates it automatically on any breach.";
-  } else {
-    el("mon-issue").textContent="No monitor tracking issue recorded in this snapshot.";
-  }
-  // Pipeline
-  el("tb-pipeline").innerHTML=d.workflows.map(function(w){
-    var L=w.latest;
-    return "<tr><td><b>"+esc(w.name)+"</b></td><td>"+(L?esc(L.title||("#"+L.run_id)):"—")+"</td><td>"+resultPill(w)+
-      "</td><td>"+(L?esc(L.event):"—")+"</td><td>"+(L?fmtT(L.updated_at):"—")+"</td><td>"+
-      (L?'<a href="'+esc(L.url)+'">run #'+L.run_id+"</a>":"")+"</td></tr>";
-  }).join("");
-}
-fetch("mlops-status.json",{cache:"no-store"})
-  .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
-  .then(render)
-  .catch(function(e){
-    el("genline").textContent="";
-    var b=el("loaderr"); b.hidden=false;
-    b.textContent="Status data could not be loaded ("+e.message+"). The snapshot file mlops-status.json may be missing — see the repo Actions tab for live pipeline state.";
-  });
-})();
+(function(){var g=document.getElementById("gen");if(!g)return;
+var t=Date.parse(g.getAttribute("data-generated-at"));if(!isFinite(t))return;
+var age=(Date.now()-t)/864e5;
+if(age>10){var s=document.getElementById("stale");if(s){s.hidden=false;
+s.textContent="This snapshot is "+Math.floor(age)+" days old \u2014 the refresh workflow may not have run recently; values below are the last generated state.";}}})();
 </script>
 </body></html>
