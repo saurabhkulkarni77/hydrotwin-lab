@@ -15,3 +15,12 @@ What's in this build:
 
 - Live site: https://saurabhkulkarni77.github.io/hydrotwin-lab/
 - Pushes to `main` redeploy the Pages site automatically.
+
+## MLOps (Level 2)
+
+This repo runs a full CI/CD/CT setup — see [MLOPS.md](MLOPS.md) for the concept map.
+
+- **CI:** the pytest suites in `tests/` validate every station page (patch-marker integrity, HT_DATA axis), every sidecar data contract, and every internal link on each PR and push (`.github/workflows/ci.yml`).
+- **Model gate:** `models/registry.json` + `models/gate.py` block production-metric regressions (>1% pooled RMSE vs `models/baselines.json`) unless the PR carries the `allow-regression` label.
+- **Monitoring:** a weekly workflow recomputes drift/freshness checks from `drift/` + the sidecars and files an `mlops-monitor` issue on threshold breaches.
+- **Releases:** version tags (or a manual dispatch of the release workflow) publish the site ZIP as a GitHub Release.
