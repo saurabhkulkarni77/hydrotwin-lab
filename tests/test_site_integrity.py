@@ -29,6 +29,8 @@ CLASSIC_MARKERS = {
     'id="hts-top"': 1,               # statsview layout root
     'id="hts-sec-weekly"': 1,        # weekly section in the stats layout
     'id="htdc-on"': 1,               # DACP band toggle control
+    "ht-liveall v2": 1,              # one Live action for all charts + old weights (draggable bar)
+    "ht-noclim v1": 1,               # climatology removed from the UI (display only)
 }
 
 THREED_MARKERS = {
@@ -40,6 +42,8 @@ THREED_MARKERS = {
     '<div id="ht-drift-panel">': 1,  # drift panel (canonical anchor)
     'id="htdc-on"': 1,               # DACP band toggle control
     'id="htwk-canvas"': 1,           # weekly outlook canvas
+    "ht-liveall v2": 1,              # one Live action for all charts + old weights (draggable bar)
+    "ht-noclim v1": 1,               # climatology removed from the UI (display only)
 }
 
 # Patches that must NOT leak across page classes.

@@ -8,6 +8,7 @@ Families covered (the sidecar families present in this repo snapshot):
   dacp/<site>.json      - daily DACP conformal quantiles, levels 70/80/90/95
   dacpw/<site>.json     - weekly DACP conformal quantiles, same levels
   corr/<site>.json      - multi-factor correlation matrix (ht-corr v1)
+  oldfc/<site>.json     - pre-drift-fix baked fans, last 400 issue days (ht-oldfc v1)
   drift/drift_bake.json + drift/drift_report.json - baked drift analysis
 
 When a new sidecar family is added to the repo, add its contract here.
@@ -27,7 +28,7 @@ def _load(repo_root, *parts):
         return json.load(f)
 
 
-@pytest.mark.parametrize("family", ["dacp", "dacpw", "weekly", "soilsnow", "corr"])
+@pytest.mark.parametrize("family", ["dacp", "dacpw", "weekly", "soilsnow", "corr", "oldfc"])
 def test_sidecar_coverage(repo_root, family):
     files = sorted(p.stem for p in (repo_root / family).glob("*.json"))
     assert files == sorted(STATIONS), f"{family}/ must hold one file per station"
@@ -108,7 +109,30 @@ def test_drift_bake_contract(repo_root):
 
 def test_drift_report_contract(repo_root):
     report = _load(repo_root, "drift", "drift_report.json")
-    assert report["windows"]["baseline"] == ["2001-10-01", "2023-09-30"]
-    assert report["windows"]["recent"] == ["2024-10-01", AXIS_END]
+    # The 2026-10-19 drift-fix data swap re-based the report on the full
+    # record; the pre-swap contract pinned the 2001-2023 baseline and went
+    # red on the swap commit. Windows now span the whole axis.
+    assert report["windows"]["baseline"] == [AXIS_START, AXIS_END]
+    assert report["windows"]["recent"] == ["2025-10-01", AXIS_END]
     assert report["models"] == MODELS
     assert sorted(report["stations"]) == sorted(STATIONS)
+
+
+@pytest.mark.parametrize("station", STATIONS)
+def test_oldfc_contract(repo_root, station):
+    """oldfc/<site>.json: the pre-drift-fix baked fans (last 400 issue days x
+    7 leads x 10 models), extracted from the lab pages' own pre-swap bake so
+    the old-weights comparison compares like with like."""
+    obj = _load(repo_root, "oldfc", f"{station}.json")
+    assert obj["site"] == station
+    assert obj["v"] == "ht-oldfc v1"
+    assert obj["src_commit"] == "0908430a8e"
+    assert obj["start"] == AXIS_START
+    assert obj["n"] == AXIS_N
+    assert obj["from_issue"] == AXIS_N - 400
+    assert obj["models"] == MODELS
+    assert sorted(obj["pred"]) == sorted(MODELS)
+    for name in MODELS:
+        rows = obj["pred"][name]
+        assert len(rows) == 400, f"{station}/{name}: {len(rows)} rows"
+        assert all(len(r) == 7 for r in rows), f"{station}/{name}: row width"
