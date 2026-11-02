@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-26T16:10:11Z",
+  "generated_at": "2026-11-02T19:31:59Z",
   "repo": "saurabhkulkarni77/hydrotwin-lab",
   "links": {
     "repo": "https://github.com/saurabhkulkarni77/hydrotwin-lab",
@@ -342,7 +342,7 @@
       "title": "MLOps monitor: drift threshold breaches detected",
       "state": "open",
       "url": "https://github.com/saurabhkulkarni77/hydrotwin-lab/issues/2",
-      "updated_at": "2026-10-26T16:09:22Z"
+      "updated_at": "2026-11-02T19:30:59Z"
     }
   },
   "workflows": [
@@ -378,14 +378,14 @@
       "file": ".github/workflows/monitor.yml",
       "name": "MLOps monitor \u2014 drift & freshness",
       "latest": {
-        "run_id": 40356232728,
+        "run_id": 41510532765,
         "title": "MLOps monitor \u2014 drift & freshness",
         "event": "schedule",
         "status": "completed",
         "conclusion": "success",
-        "created_at": "2026-10-26T16:08:38Z",
-        "updated_at": "2026-10-26T16:09:26Z",
-        "url": "https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/40356232728"
+        "created_at": "2026-11-02T19:30:17Z",
+        "updated_at": "2026-11-02T19:31:05Z",
+        "url": "https://github.com/saurabhkulkarni77/hydrotwin-lab/actions/runs/41510532765"
       }
     },
     {
